@@ -7,6 +7,7 @@
 | ID | Título | Módulo | Nível | Estado |
 |---|---|---|---|---|
 | EX-001 | Identidade da app: nome, ícone e splash (Android + iOS) | M0.5 | 2 · Intermédio | em curso |
+| EX-002 | Intro animada sem costura (splash nativo → Flutter) | M0.5 / M12 | 2 · Intermédio | por iniciar |
 
 ---
 
@@ -61,3 +62,62 @@ Estado:
 
 ### Revisão (preenchido pelo mentor)
 - (por preencher)
+
+---
+
+## EX-002 — Intro animada sem costura (splash nativo → Flutter)
+
+**Módulo:** M0.5 Sprint 0 (Etapa 1, Passo D) + introdução ao M12 Animações · **Nível:** 2 · Intermédio
+
+**Objetivo:** escrever a tua primeira animação explícita e perceber o ciclo de vida de um `StatefulWidget`, aplicando a técnica oficial de reproduzir o splash nativo no primeiro frame Flutter.
+
+**Leitura obrigatória antes de escrever código**
+- Introduction to animations: https://docs.flutter.dev/ui/animations
+- Animations tutorial (explícitas): https://docs.flutter.dev/ui/animations/tutorial
+- Adding a splash screen (Android): https://docs.flutter.dev/platform-integration/android/splash-screen
+
+**Contexto:** o cliente quer que o logo do splash "ganhe vida" quando a app abre, sem flash nem salto.
+
+**Requisitos**
+1. Novo ecrã `IntroScreen` em `lib/` (um ficheiro, sem arquitetura: é uma experiência de UI).
+2. O **primeiro frame** é igual ao splash nativo: fundo `#0D1B2A`, `assets/splash/logo.png` centrado.
+3. Animação explícita com **um** `AnimationController`: o logo cresce ligeiramente e o texto "Flutter Lab" aparece por baixo com fade.
+4. Duração total **≤ 1,5 s**.
+5. No fim, navega para o ecrã inicial **sem permitir voltar à intro** com o botão "voltar".
+6. O `AnimationController` é libertado corretamente.
+7. Sem pacotes de animação (nada de Lottie/Rive). Só o SDK.
+
+**Restrições técnicas**
+- Não uses `addListener` + `setState` para redesenhar: usa um widget de animação (`AnimatedBuilder` ou as `*Transition` do SDK).
+- O `logo.png` tem de ser declarado nos assets do `pubspec.yaml` (agora o código Dart vai usá-lo).
+- Nada de `Future.delayed` para "esperar": a navegação depende do fim da animação.
+
+**Critérios de aceitação**
+- [ ] Ao abrir pelo ícone, não há salto visível entre o splash nativo e a intro (grava o ecrã do telemóvel e vê frame a frame).
+- [ ] O botão "voltar" no ecrã inicial fecha a app, não volta à intro.
+- [ ] `flutter analyze` sem avisos; `flutter test` a passar (o teste antigo do contador tem de ser adaptado ou substituído).
+- [ ] Commit `feat: intro animada` feito por ti.
+
+**Testes necessários:** pelo menos um widget test que confirme que, depois de a animação terminar (`pumpAndSettle`), o ecrã inicial está visível.
+
+**Perguntas de consolidação**
+1. O que é o `vsync` e porque é que o `AnimationController` precisa dele?
+2. Qual é a diferença entre `AnimationController`, `Tween` e `CurvedAnimation`?
+3. Porque é que `AnimatedBuilder` é melhor do que `addListener` + `setState`? (Pensa em rebuilds.)
+4. O que acontece se não chamares `dispose()` no controller?
+5. Qual é a diferença entre animações implícitas e explícitas? Porque é que esta tem de ser explícita?
+
+**Erros comuns:** esquecer o `SingleTickerProviderStateMixin`; criar o controller no `build`; não fazer `dispose`; usar `Navigator.push` (deixa voltar à intro); logo com tamanho diferente do splash nativo (o "salto"); asset não declarado (`Unable to load asset`).
+
+**Critérios de avaliação:** cumpre os requisitos; ciclo de vida correto (`initState`/`dispose`); sem rebuilds desnecessários; consegues explicar cada linha; respostas corretas.
+
+### Registo da experiência
+```
+Hipótese:
+Montagem:
+Medição (ferramenta + modo):
+Resultado:
+Conclusão:
+Aplicação no Scout App:
+Estado:
+```
