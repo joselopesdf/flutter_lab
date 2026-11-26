@@ -36,8 +36,27 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Decode keystore
+        if: github.event_name == 'push'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=$RUNNER_TEMP/upload-keystore.jks
+          EOF
+
       - name: Build APK
         run: flutter build apk --release
+
+      - name: Verify signature
+        run: keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk | head -n 5
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
