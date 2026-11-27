@@ -44,7 +44,11 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
+          echo "base64 length: ${#KEYSTORE_BASE64}"
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
+          ls -l "$RUNNER_TEMP/upload-keystore.jks"
+          head -c 4 "$RUNNER_TEMP/upload-keystore.jks" | od -An -tx1
+          sha256sum "$RUNNER_TEMP/upload-keystore.jks"
           cat > android/key.properties <<EOF
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
