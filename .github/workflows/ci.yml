@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
 
@@ -37,7 +38,7 @@ jobs:
         run: flutter test
 
       - name: Decode keystore
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           KEYSTORE_BASE64: ${{ secrets.JOSE_KEYSTORE }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -57,7 +58,13 @@ jobs:
           EOF
 
       - name: Build APK
-        run: flutter build apk --release --build-number=$((100 + GITHUB_RUN_NUMBER))
+        run: |
+          BUILD_NUMBER=$((100 + GITHUB_RUN_NUMBER))
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            flutter build apk --release --build-name="${GITHUB_REF_NAME#v}" --build-number=$BUILD_NUMBER
+          else
+            flutter build apk --release --build-number=$BUILD_NUMBER
+          fi
 
       - name: Verify signature
         run: keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk | head -n 5
@@ -69,11 +76,11 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Distribute to Firebase App Distribution
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-          RELEASE_NOTES: ${{ github.event.head_commit.message }}
+          RELEASE_NOTES: "${{ github.ref_name }}: ${{ github.event.head_commit.message }}"
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"

@@ -23,7 +23,7 @@ Estados: `Não iniciado` · `Em estudo` · `Praticado` · `Dominado` · `Repetir
 | M0.5 | Versionamento | Praticado | ☑ ☑ ☑ | Teste relâmpago 3/3 (100%). Viu INSTALL_FAILED_VERSION_DOWNGRADE na prática |
 | M0.5 | CI (GitHub Actions) | Em estudo | ☑ ☑ ☐ | CI verde (analyze+test+build+artifact). Depurou falha do Analyze (Flutter 3.32.4 local vs stable novo → versão fixada). Falta explicar reprodutibilidade por palavras próprias; aprofundar no M16 |
 | M0.5 | CD 4a: assinatura release na CI | Praticado | ☑ ☑ ☑ | 1.º teste ~55% → revisão → novo teste ~93%. Falta: fazer o backup encriptado da keystore numa pen |
-| M0.5 | CD 4b: Firebase App Distribution | Não iniciado | ☐ ☐ ☐ | |
+| M0.5 | CD 4b: Firebase App Distribution | Em estudo | ☑ ☑ ☐ | Envio manual + CI automática (run #6 → 2.0.1+106) verdes. Falta: conclusões e teste |
 | M0.5 | Update obrigatório/opcional | Não iniciado | ☐ ☐ ☐ | |
 | M1 | Dart: null safety, OOP, sealed, patterns | Não iniciado | ☐ ☐ ☐ | |
 | M1 | Dart: event loop, Future, Stream, Isolates | Não iniciado | ☐ ☐ ☐ | |
@@ -70,3 +70,4 @@ Estados: `Não iniciado` · `Em estudo` · `Praticado` · `Dominado` · `Repetir
 - Aula 4a (assinatura): keystore criada fora do projeto, `key.properties` ignorado, Gradle com fallback para debug, NDK 27 fixado. Viu ao vivo VERSION_DOWNGRADE (pubspec em +2) e depois UPDATE_INCOMPATIBLE (chave de debug vs upload key). Secrets no GitHub + step Decode keystore (só em push) + Verify signature → CI verde, assinada por "veiga tec, Praia".
 - Bugs resolvidos: placeholder na storePassword; APK antigo após build falhado; secret com nome diferente (`JOSE_KEYSTORE`) chegava vazio sem erro → descoberto lendo o log.
 - Teste: 55% → revisão (Base64 não é cifragem; PRs não recebem a chave; backup) → reteste ~93% → aprovado.
+- Aula 4b (CD): projeto Firebase `flutter-lab` separado do ScoutPro; app registada (corrigido `om.` → `com.`); envio manual + instalação pelo App Tester ✅. Service account `github-ci-appdistribution` só com *Firebase App Distribution Admin* (não a do Admin SDK); secrets `FIREBASE_SERVICE_ACCOUNT` e `FIREBASE_APP_ID`; build number automático `100 + GITHUB_RUN_NUMBER`; release notes via `env:` (anti script injection). Run #6 tudo verde.
