@@ -8,8 +8,8 @@
 - **Projeto:** `C:\Users\josec\Desktop\flutter_lab` (pacote `flutter_lab`; Android `com.joseclaudino.flutter_lab`; iOS `com.joseclaudino.flutterLab`)
 - **Flutter / Dart:** 3.32.4 / SDK `^3.8.1`. **Desatualizado**: `flutter upgrade` por fazer.
 - **Git:** inicializado (commits de nome, ícone e splash).
-- **Módulo atual:** M0.5 Sprint 0: Etapa 3 (CI com GitHub Actions). EX-001 fica `Em estudo` e é revisto no EX-002.
-- **Próximo passo:** Aula 3 (CI com GitHub Actions) → depois teste do EX-001 dentro do EX-002. Pendente: corrigir aviso do NDK (`ndkVersion = "27.0.12077973"`).
+- **Módulo atual:** M0.5 Sprint 0: Etapa 4 (CD com Firebase App Distribution). EX-001 fica `Em estudo` e é revisto no EX-002.
+- **Próximo passo:** Aula 4b (CD: Firebase App Distribution) → depois teste do EX-001 dentro do EX-002.
 - **Diagnóstico inicial:** por fazer (perguntas A1–C4)
 
 ## Competências
@@ -21,8 +21,9 @@ Estados: `Não iniciado` · `Em estudo` · `Praticado` · `Dominado` · `Repetir
 | M0 | Ambiente, modos debug/profile/release | Não iniciado | ☐ ☐ ☐ | |
 | M0.5 | Splash nativo | Em estudo | ☐ ☑ ☐ | Bug do Stack encontrado; teste no EX-002 |
 | M0.5 | Versionamento | Praticado | ☑ ☑ ☑ | Teste relâmpago 3/3 (100%). Viu INSTALL_FAILED_VERSION_DOWNGRADE na prática |
-| M0.5 | CI (GitHub Actions) | Não iniciado | ☐ ☐ ☐ | |
-| M0.5 | CD (App Distribution / Play internal) | Não iniciado | ☐ ☐ ☐ | |
+| M0.5 | CI (GitHub Actions) | Em estudo | ☑ ☑ ☐ | CI verde (analyze+test+build+artifact). Depurou falha do Analyze (Flutter 3.32.4 local vs stable novo → versão fixada). Falta explicar reprodutibilidade por palavras próprias; aprofundar no M16 |
+| M0.5 | CD 4a: assinatura release na CI | Praticado | ☑ ☑ ☑ | 1.º teste ~55% → revisão → novo teste ~93%. Falta: fazer o backup encriptado da keystore numa pen |
+| M0.5 | CD 4b: Firebase App Distribution | Não iniciado | ☐ ☐ ☐ | |
 | M0.5 | Update obrigatório/opcional | Não iniciado | ☐ ☐ ☐ | |
 | M1 | Dart: null safety, OOP, sealed, patterns | Não iniciado | ☐ ☐ ☐ | |
 | M1 | Dart: event loop, Future, Stream, Isolates | Não iniciado | ☐ ☐ ☐ | |
@@ -63,3 +64,9 @@ Estados: `Não iniciado` · `Em estudo` · `Praticado` · `Dominado` · `Repetir
 - EX-001: encontrado bug de layout: o logo da `IntroScreen` aparecia no canto superior esquerdo (Stack com constraints soltas). Correção em curso.
 - EX-001 fica `Em estudo`: conclusões e teste adiados para o EX-002, que trabalha o mesmo fluxo. Avança-se para a Etapa 2 (versionamento).
 - Aula 2 (versionamento): builds 1.3.1+7 e 2.0.0+8; experiência de downgrade (2.0.1+1 recusado: o Android compara só o versionCode). Teste relâmpago 3/3 → aprovado. Frase em inglês pendente.
+- Aula 3 (CI): repositório no GitHub (joselopesdf/flutter_lab), `.github/workflows/ci.yml` criado. Execução #1 ❌ no Analyze (deprecation do `material.dart` no Flutter ≥3.47); corrigido fixando `flutter-version: 3.32.4` e `setup-java@v5` → ✅. Descarregou o artifact. Regra nova no CLAUDE.md: um tema de cada vez. Pendente: migrar para `material_ui` e atualizar o SDK (manutenção, mais tarde).
+
+### 2026-11-26/27
+- Aula 4a (assinatura): keystore criada fora do projeto, `key.properties` ignorado, Gradle com fallback para debug, NDK 27 fixado. Viu ao vivo VERSION_DOWNGRADE (pubspec em +2) e depois UPDATE_INCOMPATIBLE (chave de debug vs upload key). Secrets no GitHub + step Decode keystore (só em push) + Verify signature → CI verde, assinada por "veiga tec, Praia".
+- Bugs resolvidos: placeholder na storePassword; APK antigo após build falhado; secret com nome diferente (`JOSE_KEYSTORE`) chegava vazio sem erro → descoberto lendo o log.
+- Teste: 55% → revisão (Base64 não é cifragem; PRs não recebem a chave; backup) → reteste ~93% → aprovado.

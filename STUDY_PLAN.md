@@ -2,6 +2,10 @@
 
 > Plano de estudos do Lab: ir de A a Z em Flutter, com foco em apps **rápidas, fluidas e personalizadas**, e em estar pronto para **produção** (deploy, manutenção, debugging).
 >
+> **Objetivo final (definido em 2026-11-27):** sair daqui um dev Flutter completo, capaz de fazer **qualquer tipo de app** (incluindo processos em segundo plano e integração nativa), **segura, estável e rápida**, de **diagnosticar bugs depressa** e de trabalhar em qualquer empresa do mundo. A longo prazo: caminho para **Google Developer Expert** (como Andrea Bizzotto, Tadas Petra e Jacob Moura).
+>
+> **Ferramenta contínua:** `MAPA_SINTOMAS.md` — sintoma do cliente → causa provável → como provar → solução → módulo. Preenchido ao longo de todo o curso.
+>
 > Construído a partir de: documentação oficial (Flutter Learning Pathway, App Architecture Guide), Code With Andrea (Andrea Bizzotto, GDE: arquitetura Riverpod, project structure, Flutter in Production) e Tadas Petra (GDE: bootcamp Flutter com constraints, DevTools, keys, TDD e deploy nas duas lojas).
 
 ---
@@ -68,6 +72,7 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - VS Code / Android Studio: debugger, breakpoints, hot reload vs hot restart vs full restart.
 - Emulador vs dispositivo real; modos debug / profile / release (JIT vs AOT).
 - Git: commits pequenos, branches, `.gitignore` de Flutter.
+- `adb` essencial: `devices`, `install`, `logcat` (filtrar por app), `shell pm`, opções de programador ("Don't keep activities", limite de processos em segundo plano).
 - **Porta de saída:** explicas porque é que o modo debug é mais lento e o que muda em release.
 
 ### M0.5 — Sprint 0: Walking skeleton de produção *(1–2 semanas, em paralelo com M1)*
@@ -99,6 +104,8 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - Widget → Element → RenderObject: quem é imutável, quem persiste, quem pinta.
 - O que acontece num `setState`: dirty elements, `build`, reconciliação (`canUpdate`: runtimeType + key).
 - Pipeline de frame: build → layout → paint → composição → raster (UI thread vs raster thread), vsync.
+- **Motores de renderização:** Impeller (padrão atual) vs Skia; porque o Impeller elimina o *shader compilation jank*; como confirmar qual está ativo.
+- Arquitetura em camadas: framework (Dart) → engine (C++) → embedder (Android/iOS); onde vive cada coisa.
 - `StatelessWidget` vs `StatefulWidget`, ciclo de vida do `State` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `dispose`).
 - `BuildContext`, `InheritedWidget`, `mounted` depois de `await`.
 - **Keys**: `ValueKey`, `ObjectKey`, `UniqueKey`, `GlobalKey`. Bugs reais sem elas.
@@ -122,6 +129,8 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - `CustomPainter`, `ClipPath`, gradientes, sombras, `BackdropFilter` (e o custo de cada um).
 - `CustomMultiChildLayout`, `Flow`; introdução a `RenderBox` próprio (avançado).
 - Fontes e assets, ícones personalizados, imagens SVG/raster.
+- **Internacionalização (i18n/l10n):** `flutter_localizations`, ficheiros ARB, `gen-l10n`, plurais, datas/moedas (`intl`), RTL. Português e inglês no Lab.
+- **Migração para `material_ui` / `cupertino_ui`** (desacoplamento do Material no Flutter ≥3.47) quando o SDK for atualizado.
 - **Experiências:** EXP implementar um ecrã "do Figma" pixel-perfect; EXP custo de `BackdropFilter`/`saveLayer` no DevTools.
 - **Porta de saída:** pegas num design que não cabe nos widgets Material e implementa-lo com componentes do teu design system.
 
@@ -180,19 +189,54 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - Custo de animar layout vs animar transform/opacity.
 - **Porta de saída:** microinterações polidas a 60/120 fps medidos.
 
-### M13 — Nativo e plataforma *(3 semanas)*
-- `AppLifecycleState`, permissões (`permission_handler`), sistema de ficheiros (`path_provider`), `url_launcher`.
-- Notificações locais e push (FCM), deep links/App Links (`app_links`).
-- Geolocalização e mapas.
-- **Platform Channels** (MethodChannel/EventChannel) com Kotlin; Pigeon; noções de Swift.
-- Background processing: limites reais no Android e no iOS.
-- Segurança mobile: segredos, ofuscação, armazenamento seguro, certificate pinning (noções).
-- **Porta de saída:** funcionalidade nativa simples feita por ti em Kotlin via Platform Channel.
+### M13 — Nativo, plataforma e segundo plano *(5–6 semanas)*
+> Objetivo: integrar **qualquer** recurso do Android/iOS com o Flutter e fazer trabalho que **sobrevive** à app fechada.
+
+**13a · Ciclo de vida e morte do processo**
+- `AppLifecycleState` (resumed, inactive, hidden, paused, detached) e `AppLifecycleListener`.
+- **Process death:** o Android mata a app em segundo plano; o estado em memória (Riverpod incluído) desaparece. Persistir e restaurar (rascunhos em disco, `RestorationMixin`, rotas restauráveis).
+- Testar com "Don't keep activities" e `adb shell am kill`.
+- **Experiência:** EXP formulário que sobrevive a uma chamada + morte do processo.
+
+**13b · Integração nativa (Flutter ↔ Kotlin/Swift)**
+- Arquitetura dos Platform Channels: threads (main/platform thread), codecs, serialização.
+- `MethodChannel` (pedido/resposta), `EventChannel` (streams nativas → Dart), `BasicMessageChannel`.
+- **Pigeon** (canais com tipos seguros, gerados); FFI (`dart:ffi`) para C/C++ (noções).
+- Kotlin essencial para dev Flutter: Activity, Context, Intents, permissões, coroutines (noções); Swift essencial (noções).
+- Criar um **plugin** próprio (federado: Android + iOS), publicável.
+- **Experiências:** EXP bateria/sensor via MethodChannel; EXP stream de um sensor via EventChannel.
+
+**13c · Permissões e recursos do dispositivo**
+- `permission_handler`: pedir, negar, "negado para sempre", abrir definições; permissões no `AndroidManifest.xml` e `Info.plist`.
+- Ficheiros (`path_provider`), `url_launcher`, partilha.
+- Geolocalização (primeiro plano e segundo plano) e mapas.
+- Biometria (`local_auth`), câmara, Bluetooth LE, NFC, sensores (noções e um caso prático).
+
+**13d · Notificações e deep links**
+- Notificações locais (canais Android, agendadas, ações, permissão do Android 13+).
+- FCM: foreground, background e **terminated**; handlers *headless*; dados vs notificação.
+- Deep links / App Links / Universal Links (`app_links`), abrir o ecrã certo a partir de uma notificação.
+
+**13e · Trabalho em segundo plano** *(o bloco mais importante)*
+- **WorkManager** (`workmanager`): tarefas únicas e periódicas, com condições (Wi-Fi, a carregar, bateria ok), retries e backoff.
+- **Foreground services:** tarefas longas com notificação visível (GPS a gravar um treino, áudio, upload grande); tipos de foreground service exigidos pelo Android 14+.
+- **Uploads e downloads em segundo plano** que continuam com a app fechada (ex.: `background_downloader`).
+- **Isolates em segundo plano:** registar callbacks *top-level*, `@pragma('vm:entry-point')`, comunicar com a UI (`SendPort`/`ReceivePort`, `IsolateNameServer`).
+- **Limites reais do Android:** Doze, App Standby Buckets, otimização de bateria, alarmes exatos (`SCHEDULE_EXACT_ALARM`), arranque após reboot (`RECEIVE_BOOT_COMPLETED`), fabricantes que matam apps (Xiaomi, Samsung, Huawei — dontkillmyapp.com).
+- **iOS:** `BGTaskScheduler` (app refresh vs processing), background modes, porque o iOS é muito mais restrito.
+- Escolher a ferramenta certa: WorkManager vs foreground service vs alarme vs push (tabela de decisão).
+- **Porta de saída do bloco:** uma tarefa que **sobrevive** a fechares a app e a reiniciares o telemóvel, com logs que o provam.
+
+**13f · Segurança na integração nativa** (aprofundada no M17)
+- Segredos fora da app, armazenamento seguro (Keystore/Keychain via `flutter_secure_storage`), ofuscação.
+
+- **Porta de saída do módulo:** funcionalidade nativa feita por ti em Kotlin via Pigeon/Platform Channel **e** uma tarefa em segundo plano robusta (13e), ambas no Lab e explicadas em inglês.
 
 ### M14 — Testes *(contínuo, com bloco dedicado de 2 semanas)*
 - Unit (ViewModels, Repositories, lógica pura), widget tests, integration tests, golden tests.
 - Mocks vs fakes (`mocktail`), testar providers com `ProviderContainer` e overrides, testes assíncronos e de streams, `fake_cloud_firestore` / Emulator.
 - TDD em pequenas funcionalidades; o que **não** vale a pena testar.
+- Testes que tocam no nativo (diálogos de permissão, notificações) com **Patrol**; testes em vários dispositivos (Firebase Test Lab, noções).
 - **Porta de saída:** cada funcionalidade nova vem com testes que falham se o comportamento partir.
 
 ### M15 — Performance e debugging com DevTools *(2 semanas, e contínuo)*
@@ -200,6 +244,9 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - Shader jank, `RepaintBoundary`, `saveLayer`, opacidade/clip caros.
 - Startup time, tamanho do APK/AAB, `--analyze-size`.
 - Ler stack traces, `debugPrint`, logging estruturado, depurar em release.
+- **Telemóveis fracos:** testar num Android de gama baixa, pouca RAM, rede lenta (throttling); memória de imagens; tempo de arranque a frio.
+- **Triagem de crashes:** ANRs, crashes nativos no `logcat`, *symbolication* de stack traces ofuscados (`--split-debug-info`), reproduzir um bug reportado por um utilizador.
+- **Método de diagnóstico:** sintoma → hipótese → medir → corrigir → provar com números → registar no `MAPA_SINTOMAS.md`.
 - **Porta de saída:** pegas numa app lenta (feita por mim de propósito), encontras 3 problemas com o DevTools e provas a melhoria com números.
 
 ### M16 — Produção: build, deploy e manutenção *(3 semanas)*
@@ -208,7 +255,36 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - iOS: certificados, provisioning, TestFlight (requer Mac ou CI macOS).
 - CI/CD: GitHub Actions (analyze + test + build), Codemagic como alternativa; versionamento semântico e `buildNumber`.
 - Crashlytics, Analytics, monitorização, feature flags/Remote Config, atualizações forçadas.
+- **Manutenção a longo prazo:** atualizar o SDK do Flutter (FVM), `flutter pub outdated`, ler changelogs e breaking changes, `dart fix`, migrações (ex.: `material_ui`), `targetSdk` anual exigido pela Play.
+- **Gestão de chaves e contas:** backup da keystore, Play App Signing, contas no nome do cliente (projetos para bancos/governo).
 - **Porta de saída:** a app do Lab publicada em testes internos com CI a correr testes em cada PR e crash reporting ativo.
+
+### M17 — Segurança mobile para bancos e governo *(2–3 semanas)*
+- **OWASP MASVS / MASTG:** o que cada categoria exige (armazenamento, criptografia, autenticação, rede, plataforma, código, resiliência).
+- Armazenamento seguro (Keystore/Keychain), dados sensíveis em memória, logs sem dados pessoais.
+- Rede: HTTPS, **certificate pinning**, proteção contra MITM.
+- Autenticação forte: biometria, sessão, refresh tokens, *device binding*.
+- Resiliência: ofuscação, deteção de root/jailbreak e emuladores (noções e limites), anti-tamper, `FLAG_SECURE` (bloquear screenshots).
+- O cliente nunca é confiável: validação no servidor, App Check (Firebase), idempotência em pagamentos.
+- **Porta de saída:** checklist MASVS aplicada ao Lab, com cada ponto provado ou justificado.
+
+### M18 — Pagamentos e monetização *(1–2 semanas)*
+- In-App Purchases e subscrições (`in_app_purchase`, RevenueCat), validação no servidor, *entitlements*.
+- Pagamentos externos (Stripe e similares) e regras das lojas.
+- **Porta de saída:** paywall com subscrição de teste ativa e restaurável.
+
+### M19 — Multiplataforma *(1–2 semanas)*
+- Flutter Web (renderizadores, SEO, limites) e desktop (Windows/macOS/Linux): quando faz sentido.
+- Código adaptativo por plataforma e por input; plugins com suporte parcial.
+- **Porta de saída:** o Lab a correr em web e desktop com layout adaptativo.
+
+### M20 — Expert e comunidade (caminho GDE) *(contínuo)*
+- Ler o código-fonte do Flutter; abrir issues bem documentadas; contribuir (docs, testes, um PR pequeno).
+- Publicar um pacote no pub.dev (com testes, exemplo, pontuação alta).
+- Artigos e talks **em inglês** (e português), mentoria, comunidade (Flutter Cabo Verde / lusófona).
+- Trabalhar com IA como engenheiro: `CLAUDE.md`, specs e planos, rever criticamente o código gerado.
+- Confirmar os requisitos atuais do programa GDE antes de se candidatar.
+- **Porta de saída:** um pacote publicado + 3 artigos técnicos em inglês baseados no Lab.
 
 ---
 
@@ -224,6 +300,9 @@ Ordem recomendada. Cada módulo tem uma **porta de saída**: só avanças quando
 - [ ] `flutter analyze` sem avisos e testes verdes antes de cada commit.
 - [ ] Ler a mensagem de erro inteira antes de pesquisar.
 - [ ] Atualizar dependências com cuidado (changelogs, breaking changes).
+- [ ] Testar process death ("Don't keep activities") em ecrãs com dados do utilizador.
+- [ ] Backup da keystore e das passwords fora do PC.
+- [ ] Copiar e colar identificadores (package name, nomes de secrets, App IDs) em vez de os escrever à mão.
 
 ---
 
